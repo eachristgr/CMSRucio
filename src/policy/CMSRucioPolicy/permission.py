@@ -175,7 +175,6 @@ def perm_update_rse(issuer, kwargs, *, session: "Optional[Session]" = None):
 
 
 def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional[Session]" = None):
-
     def _get_rule_size(rules):
         rule_size = 0
         for rule in rules:
@@ -189,7 +188,7 @@ def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional
     if not kwargs["ask_approval"]:
         from rucio.core.permission import PermissionResult
         return PermissionResult(False, ("ask_approval argument is necessary under User AutoApprove.\n"
-                                           "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval" ))
+                                        "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
     # prevent rule creation to tape and Tier3 and Tier0 under the 'User AutoApprove' activity
     rule_rses = {rse['rse'] for rse in rses}
     try:
@@ -223,9 +222,9 @@ def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional
 
     try:
         rule_lifetime_threshold = int(config_get('rules', 'rule_lifetime_threshold',
-                                      raise_exception=True, default=30*24*3600))
+                                                 raise_exception=True, default=30 * 24 * 3600))
     except (NoOptionError, NoSectionError, RuntimeError):
-        rule_lifetime_threshold = 30*24*3600
+        rule_lifetime_threshold = 30 * 24 * 3600
 
     try:
         single_rse_rule_size_threshold = float(config_get(
@@ -236,21 +235,21 @@ def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional
     from rucio.core.permission import PermissionResult
     # Check if the account is banned
     if has_account_attribute(account, 'auto_approve_banned', session=session):
-        
         return PermissionResult(False, "This account is banned, please create a ticket in Jira to the DM team.")
 
     # Check if the rule is locked
     if kwargs['locked']:
         return PermissionResult(False, ("Rules cannot be locked under User AutoApprove.\n"
-                                            "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
+                                        "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
 
     if kwargs['lifetime'] is None:
         return PermissionResult(False, ("Rules without lifetime cannot be created under User AutoApprove.\n"
-                                            "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
+                                        "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
 
     if kwargs['lifetime'] > rule_lifetime_threshold:
-        return PermissionResult(False, (f"The rule lifetime exceedsThe rule lifetime exceeds the treshold ({rule_lifetime_treshold}).\n"
-                                            "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
+        return PermissionResult(False, (
+            f"The rule lifetime exceedsThe rule lifetime exceeds the treshold ({rule_lifetime_treshold}).\n"
+            "Review the requirements for Auto Approval in: https://cmsdmops.docs.cern.ch/Users/Subscribe%20data/#requirements-for-auto-approval"))
 
     for did in dids:
         size_of_rule = sum([file['bytes']
@@ -271,12 +270,14 @@ def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional
                 session=session)
             this_rse_autoapprove_usage = _get_rule_size(this_rse_autoapprove_rules)
             if this_rse_autoapprove_usage + size_of_rule > single_rse_rule_size_threshold:
-                logging.warning(f'Single RSE usage exceeded for auto approve rules for account {account} and RSE {rse_expression}, ',
-                                    'this_rse_autoapprove_usage, size_of_rule, single_rse_rule_size_threshold: ',
-                                    f'{this_rse_autoapprove_usage}, {size_of_rule}, {single_rse_rule_size_threshold}')
-                return PermissionResult(False, (f'Single RSE usage exceeded for auto approve rules for account {account} and RSE {rse_expression}, '
-                                                    'this_rse_autoapprove_usage, size_of_rule, single_rse_rule_size_threshold: '
-                                                    f'{this_rse_autoapprove_usage}, {size_of_rule}, {single_rse_rule_size_threshold}'))
+                logging.warning(
+                    f'Single RSE usage exceeded for auto approve rules for account {account} and RSE {rse_expression}, ',
+                    'this_rse_autoapprove_usage, size_of_rule, single_rse_rule_size_threshold: ',
+                    f'{this_rse_autoapprove_usage}, {size_of_rule}, {single_rse_rule_size_threshold}')
+                return PermissionResult(False, (
+                    f'Single RSE usage exceeded for auto approve rules for account {account} and RSE {rse_expression}, '
+                    'this_rse_autoapprove_usage, size_of_rule, single_rse_rule_size_threshold: '
+                    f'{this_rse_autoapprove_usage}, {size_of_rule}, {single_rse_rule_size_threshold}'))
 
         # Check global usage of the account under this activity
         all_auto_approve_rules_by_account = list_rules(
@@ -284,11 +285,12 @@ def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional
         global_auto_approve_usage_by_account = _get_rule_size(all_auto_approve_rules_by_account)
         if global_auto_approve_usage_by_account + size_of_rule > global_usage_per_account:
             logging.warning(f'Global usage exceeded for auto approve rules for account {account}, current usage, ',
-                                f'size of rule, global_usage_per_account: {global_auto_approve_usage_by_account}, ',
-                                    f'{size_of_rule}, {global_usage_per_account}')
-            return PermissionResult(False, (f'Global usage exceeded for auto approve rules for account {account}, current usage, '
-                                                f'size of rule, global_usage_per_account: {global_auto_approve_usage_by_account}, '
-                                                    f'{size_of_rule}, {global_usage_per_account}'))
+                            f'size of rule, global_usage_per_account: {global_auto_approve_usage_by_account}, ',
+                            f'{size_of_rule}, {global_usage_per_account}')
+            return PermissionResult(False, (
+                f'Global usage exceeded for auto approve rules for account {account}, current usage, '
+                f'size of rule, global_usage_per_account: {global_auto_approve_usage_by_account}, '
+                f'{size_of_rule}, {global_usage_per_account}'))
 
         # Check global usage under the AutoApprove category by all accounts
         query = session.query(
@@ -300,9 +302,10 @@ def _check_for_auto_approve_eligibility(issuer, rses, kwargs, session: "Optional
             current_auto_approve_usage = 0
         if current_auto_approve_usage + size_of_rule > global_usage_all_accounts:
             logging.warning('Global usage exceeded for auto approve rules, current usage, size of rule, ',
-                                f'global_usage_all_accounts: {current_auto_approve_usage}, {size_of_rule}, {global_usage_all_accounts}')
-            return PermissionResult(False, ('Global usage exceeded for auto approve rules, current usage, size of rule, '
-                                                f'global_usage_all_accounts: {current_auto_approve_usage}, {size_of_rule}, {global_usage_all_accounts}'))
+                            f'global_usage_all_accounts: {current_auto_approve_usage}, {size_of_rule}, {global_usage_all_accounts}')
+            return PermissionResult(False,
+                                    ('Global usage exceeded for auto approve rules, current usage, size of rule, '
+                                     f'global_usage_all_accounts: {current_auto_approve_usage}, {size_of_rule}, {global_usage_all_accounts}'))
 
     return True
 
@@ -326,10 +329,11 @@ def perm_add_rule(issuer, kwargs, *, session: "Optional[Session]" = None):
             if rse_attr.get('requires_approval', False):
                 from rucio.core.permission import PermissionResult
                 return PermissionResult(False, ("One or more of the RSEs matching the expression needs approval "
-                                                    "and thus the rule cannot be created (i.e. ask_approval is missing)."))
+                                                "and thus the rule cannot be created (i.e. ask_approval is missing)."))
 
     # If asked for approval, rse_expression can only be a single RSE
-    if kwargs["activity"] not in ["User AutoApprove", "Analysis TapeRecall"] and kwargs["ask_approval"] and len(rses) != 1:
+    if kwargs["activity"] not in ["User AutoApprove", "Analysis TapeRecall"] and kwargs["ask_approval"] and len(
+            rses) != 1:
         from rucio.core.permission import PermissionResult
         return PermissionResult(False, "If asked for approval, rse_expression can only contain a single RSE.")
 
@@ -623,16 +627,23 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
     :param session: The DB session to use
     :returns: True if account is allowed, otherwise False
     """
-    #TODO: Check scope ownership for bulk add operation too
-    
-    # Check the accounts of the issued rules
+
+    all_in_scope = False
     if not _is_root(issuer) and not has_account_attribute(account=issuer, key='admin', session=session):
+        all_in_scope = True
         for did in kwargs['dids']:
+            # Check the accounts of the issued rules
             for rule in did.get('rules', []):
                 if rule['account'] != issuer:
                     return False
+            # Check that the user can add dids as longs as all the scopes are theirs
+            did_scope = did['scope']  # Scope is already external
+            if (did_scope != 'cms'
+                    and not rucio.core.scope.is_scope_owner(scope=InternalScope(did_scope),
+                                                            account=issuer, session=session)):
+                all_in_scope = False
 
-    return _is_root(issuer) or has_account_attribute(account=issuer, key='admin', session=session)
+    return _is_root(issuer) or has_account_attribute(account=issuer, key='admin', session=session) or all_in_scope
 
 
 def perm_attach_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
@@ -682,7 +693,8 @@ def perm_create_did_sample(issuer, kwargs, *, session: "Optional[Session]" = Non
     """
     return issuer == ('root'
                       or has_account_attribute(account=issuer, key='admin', session=session)  # NOQA: W503
-                      or rucio.core.scope.is_scope_owner(scope=kwargs['scope'], account=issuer, session=session)  # NOQA: W503
+                      or rucio.core.scope.is_scope_owner(scope=kwargs['scope'], account=issuer,
+                                                         session=session)  # NOQA: W503
                       or kwargs['scope'].external == 'mock')  # NOQA: W503
 
 
