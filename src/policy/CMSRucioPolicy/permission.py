@@ -628,6 +628,7 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
     :returns: True if account is allowed, otherwise False
     """
 
+    all_in_scope = False
     if not _is_root(issuer) and not has_account_attribute(account=issuer, key='admin', session=session):
         all_in_scope = True
         for did in kwargs['dids']:
