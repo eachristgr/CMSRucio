@@ -19,7 +19,7 @@ jobs:
       - name: Get latest CMSRUCIO_GITTAG
         id: cmsrucio_gittag
         run: |
-          LATEST_TAG=$(git ls-remote --tags --refs upstream 'release-*.cms*' | awk -F/ '{print $NF}' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags --refs origin 'release-*.cms*' | awk -F/ '{print $NF}' | sort -V | tail -n1)
           echo "cmsrucio_gittag=$LATEST_TAG" >> "$GITHUB_ENV"
 
       - name: Login to CERN Harbour
