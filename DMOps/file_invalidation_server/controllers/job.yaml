@@ -49,6 +49,7 @@ spec:
         - name: cvmfs-volume
           mountPath: "/cvmfs/"
           readOnly: true
+          mountPropagation: HostToContainer
         - name: input-file
           mountPath: "/input/"
       containers:
@@ -66,6 +67,7 @@ spec:
         - name: cvmfs-volume
           mountPath: "/cvmfs/"
           readOnly: true
+          mountPropagation: HostToContainer
         - name: vomses-volume
           mountPath: "/etc/vomses/"
           readOnly: true
