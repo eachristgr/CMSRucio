@@ -627,19 +627,20 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
     :param session: The DB session to use
     :returns: True if account is allowed, otherwise False
     """
-    # TODO: Check scope ownership for bulk add operation too
 
-    # Check the accounts of the issued rules
     if not _is_root(issuer) and not has_account_attribute(account=issuer, key='admin', session=session):
         for did in kwargs['dids']:
+            # Check the accounts of the issued rules
             for rule in did.get('rules', []):
                 if rule['account'] != issuer:
                     return False
-            # Scope is already external
-            did_scope = did['scope']
+            # Check that the user can add dids as longs as all the scopes are theirs
+            did_scope = did['scope']  # Scope is already external
             if (did_scope != 'cms'
-                and rucio.core.scope.is_scope_owner(scope=InternalScope(did_scope), account=issuer, session=session)):
+                    and not rucio.core.scope.is_scope_owner(scope=InternalScope(did_scope),
+                                                            account=issuer, session=session)):
                 return False
+
     return _is_root(issuer) or has_account_attribute(account=issuer, key='admin', session=session)
 
 
