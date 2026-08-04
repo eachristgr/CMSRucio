@@ -629,6 +629,7 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
     """
 
     if not _is_root(issuer) and not has_account_attribute(account=issuer, key='admin', session=session):
+        all_in_scope = True
         for did in kwargs['dids']:
             # Check the accounts of the issued rules
             for rule in did.get('rules', []):
@@ -639,9 +640,9 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
             if (did_scope != 'cms'
                     and not rucio.core.scope.is_scope_owner(scope=InternalScope(did_scope),
                                                             account=issuer, session=session)):
-                return False
+                all_in_scope = False
 
-    return _is_root(issuer) or has_account_attribute(account=issuer, key='admin', session=session)
+    return _is_root(issuer) or has_account_attribute(account=issuer, key='admin', session=session) or all_in_scope
 
 
 def perm_attach_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
