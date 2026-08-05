@@ -152,6 +152,11 @@ try:
         # Process main RSE
         rses_to_update = [rse]
 
+        # Also process _User variant if it exists
+        user_rse = f"{rse.replace('_Disk', '')}_User"
+        if user_rse in rses:
+            rses_to_update.append(user_rse)
+
         for rse in rses_to_update:
             logger.info(f"Updating {rse}")
             if rse in skip_rses:

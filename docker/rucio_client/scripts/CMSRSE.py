@@ -369,6 +369,9 @@ class CMSRSE:
 
             elif self.cms_type == "temp":
                 prefix = prefix + "store/temp/"
+            
+            elif self.cms_type == "user":
+                prefix = prefix + "store/user/rucio"
 
             proto = {
                 'scheme': scheme,
@@ -439,16 +442,19 @@ class CMSRSE:
                         done_chains.add(proto_name)
 
             # If we are building a _Test or _Temp instance
-            if self.cms_type == "test" or self.cms_type == "temp":
+            if self.cms_type == "test" or self.cms_type == "temp" or self.cms_type == "user":
                 # We need to find the rule that applies to the special prefix
-                # used for _Test(/store/test/rucio) or _Temp(/store/temp) and
-                # adpat it as a prefix
+                # used for _Test(/store/test/rucio) or _Temp(/store/temp) or _User(/store/user/rucio)
+                # and adpat it as a prefix
                 for rule in tfc:
                     prefix_regex = re.compile(rule['path'])
                     if self.cms_type == "test":
                         prefix_match = prefix_regex.match("/store/test/rucio/")
-                    else:
+                    elif self.cms_type == "temp":
                         prefix_match = prefix_regex.match("/store/temp/")
+                    elif self.cms_type == "user":
+                        prefix_match = prefix_regex.match("/store/user/rucio/")
+                        
                     if prefix_match:
                         match_rule = rule['path']
                         g1 = prefix_match.group(1)
