@@ -444,8 +444,8 @@ class CMSRSE:
             # If we are building a _Test or _Temp instance
             if self.cms_type == "test" or self.cms_type == "temp" or self.cms_type == "user":
                 # We need to find the rule that applies to the special prefix
-                # used for _Test(/store/test/rucio) or _Temp(/store/temp) and
-                # adpat it as a prefix
+                # used for _Test(/store/test/rucio) or _Temp(/store/temp) or _User(/store/user/rucio)
+                # and adpat it as a prefix
                 for rule in tfc:
                     prefix_regex = re.compile(rule['path'])
                     if self.cms_type == "test":
