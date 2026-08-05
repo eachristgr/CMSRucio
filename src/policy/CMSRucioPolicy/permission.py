@@ -748,11 +748,10 @@ def perm_create_did_sample(issuer, kwargs, *, session: "Optional[Session]" = Non
     :param session: The DB session to use
     :returns: True if account is allowed, otherwise False
     """
-    return issuer == ('root'
-                      or has_account_attribute(account=issuer, key='admin', session=session)  # NOQA: W503
-                      or rucio.core.scope.is_scope_owner(scope=kwargs['scope'], account=issuer,
-                                                         session=session)  # NOQA: W503
-                      or kwargs['scope'].external == 'mock')  # NOQA: W503
+    return (_is_root(issuer)
+            or has_account_attribute(account=issuer, key='admin', session=session)
+            or rucio.core.scope.is_scope_owner(scope=kwargs['scope'], account=issuer, session=session)
+            or kwargs['scope'].external == 'mock')
 
 
 def perm_del_rule(issuer, kwargs, *, session: "Optional[Session]" = None):
