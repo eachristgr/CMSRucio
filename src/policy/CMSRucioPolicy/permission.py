@@ -23,7 +23,6 @@ from typing import TYPE_CHECKING
 import rucio.core.scope
 from rucio.common.config import config_get, config_get_int
 from rucio.common.exception import InvalidRSEExpression, AccountNotFound
-from rucio.common.types import InternalScope
 from rucio.core.account import has_account_attribute, get_account
 from rucio.core.account_limit import get_local_account_limit
 from rucio.core.did import list_files
@@ -694,10 +693,10 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
             for rule in did.get('rules', []):
                 if rule['account'] != issuer:
                     return False
-            # Check that the user can add dids as longs as all the scopes are theirs
-            did_scope = did['scope']  # Scope is already external
-            if (did_scope != 'cms'
-                    and not rucio.core.scope.is_scope_owner(scope=InternalScope(did_scope),
+            # Check that the user can add dids as long as all the scopes are theirs.
+            did_scope = did['scope']
+            if (did_scope.external != 'cms'
+                    and not rucio.core.scope.is_scope_owner(scope=did_scope,
                                                             account=issuer, session=session)):
                 all_in_scope = False
 
