@@ -23,7 +23,6 @@ from typing import TYPE_CHECKING
 import rucio.core.scope
 from rucio.common.config import config_get, config_get_int
 from rucio.common.exception import InvalidRSEExpression, AccountNotFound
-from rucio.common.types import InternalScope
 from rucio.core.account import has_account_attribute, get_account
 from rucio.core.account_limit import get_local_account_limit
 from rucio.core.did import list_files
@@ -694,10 +693,10 @@ def perm_add_dids(issuer, kwargs, *, session: "Optional[Session]" = None):
             for rule in did.get('rules', []):
                 if rule['account'] != issuer:
                     return False
-            # Check that the user can add dids as longs as all the scopes are theirs
-            did_scope = did['scope']  # Scope is already external
-            if (did_scope != 'cms'
-                    and not rucio.core.scope.is_scope_owner(scope=InternalScope(did_scope),
+            # Check that the user can add dids as long as all the scopes are theirs.
+            did_scope = did['scope']
+            if (did_scope.external != 'cms'
+                    and not rucio.core.scope.is_scope_owner(scope=did_scope,
                                                             account=issuer, session=session)):
                 all_in_scope = False
 
@@ -749,11 +748,10 @@ def perm_create_did_sample(issuer, kwargs, *, session: "Optional[Session]" = Non
     :param session: The DB session to use
     :returns: True if account is allowed, otherwise False
     """
-    return issuer == ('root'
-                      or has_account_attribute(account=issuer, key='admin', session=session)  # NOQA: W503
-                      or rucio.core.scope.is_scope_owner(scope=kwargs['scope'], account=issuer,
-                                                         session=session)  # NOQA: W503
-                      or kwargs['scope'].external == 'mock')  # NOQA: W503
+    return (_is_root(issuer)
+            or has_account_attribute(account=issuer, key='admin', session=session)
+            or rucio.core.scope.is_scope_owner(scope=kwargs['scope'], account=issuer, session=session)
+            or kwargs['scope'].external == 'mock')
 
 
 def perm_del_rule(issuer, kwargs, *, session: "Optional[Session]" = None):
