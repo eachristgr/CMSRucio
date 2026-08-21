@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'fileinvalidation-*'
-      - 'integritygenericcheck-*'
+      - 'fileintegrity-*'
   workflow_dispatch:
     inputs:
       tool:
@@ -13,12 +13,12 @@ on:
         type: choice
         default: 'both'
         options:
-          - 'integrity-generic-check'
+          - 'file-integrity'
           - 'file-invalidation'
           - 'both'
       tag_version:
-        description: 'Optional: Image tag version (e.g., 1.0.0). Defaults to manual-<run_number> if left blank.'
-        required: false
+        description: 'Image tag version (e.g., 1.0.0)'
+        required: true
         type: string
 
 jobs:
@@ -35,10 +35,7 @@ jobs:
         id: tagname
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_VAL="${{ inputs.tag_version }}"
-            # Fallback to run number if no custom tag is provided in the UI
-            [ -z "$TAG_VAL" ] && TAG_VAL="manual-${{ github.run_number }}"
-            echo "tag=$TAG_VAL" >> "$GITHUB_ENV"
+            echo "tag=${{ inputs.tag_version }}" >> "$GITHUB_ENV"
           else
             echo "tag=${GITHUB_REF#refs/tags/fileinvalidation-}" >> "$GITHUB_ENV"
           fi
@@ -64,8 +61,8 @@ jobs:
 
   build-integrity-check:
     if: |
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/integritygenericcheck-')) ||
-      (github.event_name == 'workflow_dispatch' && (inputs.tool == 'integrity-generic-check' || inputs.tool == 'both'))
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/fileintegrity-')) ||
+      (github.event_name == 'workflow_dispatch' && (inputs.tool == 'file-integrity' || inputs.tool == 'both'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -75,11 +72,9 @@ jobs:
         id: tagname
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_VAL="${{ inputs.tag_version }}"
-            [ -z "$TAG_VAL" ] && TAG_VAL="manual-${{ github.run_number }}"
-            echo "tag=$TAG_VAL" >> "$GITHUB_ENV"
+            echo "tag=${{ inputs.tag_version }}" >> "$GITHUB_ENV"
           else
-            echo "tag=${GITHUB_REF#refs/tags/integritygenericcheck-}" >> "$GITHUB_ENV"
+            echo "tag=${GITHUB_REF#refs/tags/fileintegrity-}" >> "$GITHUB_ENV"
           fi
         
       - name: Login to CERN Harbour
@@ -100,32 +95,3 @@ jobs:
         run: |
           docker push registry.cern.ch/${{ vars.HARBOR_REPOSITORY }}/file-integrity-check-generic-decompression-check:${{ env.tag }}
           docker push registry.cern.ch/${{ vars.HARBOR_REPOSITORY }}/file-integrity-check-generic-decompression-check:latest
-
-  okd-pipeline:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install oc
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: "4.14"
-      - name: Verify Installation
-        run: oc version --client
-      - name: Log in to OKD
-        uses: redhat-actions/oc-login@v1
-        with:
-          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          insecure_skip_tls_verify: true
-
-      - name: Start OKD Build
-        run: |
-          # Start the build from your BuildConfig
-          # --wait blocks the action until the build finishes
-          # --follow shows the logs in your GitHub Action console
-          oc start-build file-invalidation-tool --follow --wait
-
-      - name: Rollout Deployment
-        run: |
-          # Manually trigger a new rollout of the deployment
-          oc rollout restart deployment/file-invalidation-tool
-
